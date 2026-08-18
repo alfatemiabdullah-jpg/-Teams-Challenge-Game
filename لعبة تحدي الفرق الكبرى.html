@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>تحدي الفرق - مسابقة الأبطال</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Cairo', sans-serif;
+            background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #311042 100%);
+            color: #f8fafc;
+            min-height: 100vh;
+        }
+        .glass-panel {
+            background: rgba(30, 41, 59, 0.7);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .neon-glow {
+            text-shadow: 0 0 15px rgba(168, 85, 247, 0.6);
+        }
+    </style>
+</head>
+<body class="flex flex-col items-center justify-between p-4 min-h-screen">
+
+    <header class="w-full max-w-5xl flex justify-between items-center py-4 px-6 glass-panel rounded-2xl shadow-2xl mb-4">
+        <div class="flex items-center gap-3">
+            <span class="text-3xl animate-bounce">🏆</span>
+            <div>
+                <h1 class="text-xl md:text-2xl font-black bg-gradient-to-r from-purple-400 to-pink-500 bg-clip-text text-transparent">تحدي الفرق الكبرى</h1>
+                <p class="text-xs text-slate-400">المسابقة التفاعلية المباشرة</p>
+            </div>
+        </div>
+        <div id="gameStatusBadge" class="px-4 py-1.5 bg-purple-900/60 border border-purple-500/40 rounded-full text-xs font-bold text-purple-200">
+            جاهز للبدء
+        </div>
+    </header>
+
+    <main class="w-full max-w-5xl flex-1 flex flex-col justify-center items-center">
+
+        <!-- شاشة الإعدادات وربط الفريقين -->
+        <div id="setupScreen" class="w-full glass-panel rounded-3xl p-6 md:p-10 shadow-2xl text-center max-w-2xl">
+            <h2 class="text-3xl font-extrabold mb-4 text-purple-300">أهلاً بكم في معركة الأذكياء!</h2>
+            <p class="text-slate-300 mb-8 text-sm md:text-base">قم بإدخال أسماء الفرق المشاركة وحدد نمط المسابقة لنبدأ التحدي والحماس.</p>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                <div class="bg-indigo-950/50 p-5 rounded-2xl border border-indigo-500/30">
+                    <label class="block text-sm font-bold text-indigo-300 mb-2">اسم الفريق الأول 🔵</label>
+                    <input type="text" id="team1NameInput" value="فريق الصقور" class="w-full px-4 py-3 bg-slate-900 border border-slate-700 rounded-xl text-center font-bold text-white focus:outline-none focus:border-indigo-500">
+                </div>
+                <div class="bg-pink-950/50 p-5 rounded-2xl border border-pink-500/30">
+                    <label class="block text-sm font-bold text-pink-300 mb-2">اسم الفريق الثاني 🔴</label>
+                    <input type="text" id="team2NameInput" value="فريق الأسود" class="w-full px-4 py-3 bg-slate-900 border border-slate-700 rounded-xl text-center font-bold text-white focus:outline-none focus:border-pink-500">
+                </div>
+            </div>
+
+            <div class="mb-8">
+                <label class="block text-sm font-bold text-slate-300 mb-2">اختر فئة الأسئلة:</label>
+                <select id="categorySelect" class="w-full max-w-md px-4 py-3 bg-slate-900 border border-slate-700 rounded-xl text-center font-bold text-white focus:outline-none focus:border-purple-500 mx-auto">
+                    <option value="general">معلومات عامة وثقافة واسعة 🌍</option>
+                    <option value="tech">تكنولوجيا وبرمجة وذكاء اصطناعي 💻</option>
+                    <option value="riddles">ألغاز ذكاء وتفكير جانبي 🧩</option>
+                </select>
+            </div>
+
+            <button onclick="startGame()" class="w-full max-w-md bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 text-white font-black py-4 px-8 rounded-2xl shadow-lg transition transform hover:scale-105 active:scale-95 text-lg">
+                🚀 ابدأ المسابقة الآن
+            </button>
+        </div>
+
+        <!-- شاشة اللعب والمسابقة الرئيسية -->
+        <div id="gameScreen" class="w-full hidden flex flex-col gap-6">
+            
+            <!-- لوحة النتائج الحية -->
+            <div class="grid grid-cols-2 gap-4 md:gap-8">
+                <div id="team1Card" class="glass-panel p-5 rounded-2xl border-l-4 border-l-indigo-500 flex justify-between items-center transition-all duration-300">
+                    <div>
+                        <h3 id="displayTeam1Name" class="font-black text-lg md:text-xl text-indigo-300">فريق الصقور</h3>
+                        <p class="text-xs text-slate-400">النقاط الحالية</p>
+                    </div>
+                    <div id="team1Score" class="text-3xl md:text-5xl font-black text-white">0</div>
+                </div>
+
+                <div id="team2Card" class="glass-panel p-5 rounded-2xl border-l-4 border-l-pink-500 flex justify-between items-center transition-all duration-300">
+                    <div>
+                        <h3 id="displayTeam2Name" class="font-black text-lg md:text-xl text-pink-300">فريق الأسود</h3>
+                        <p class="text-xs text-slate-400">النقاط الحالية</p>
+                    </div>
+                    <div id="team2Score" class="text-3xl md:text-5xl font-black text-white">0</div>
+                </div>
+            </div>
+
+            <!-- صندوق السؤال والمؤقت -->
+            <div class="glass-panel rounded-3xl p-6 md:p-10 shadow-2xl relative overflow-hidden">
+                <div class="flex justify-between items-center mb-6 border-b border-slate-700/60 pb-4">
+                    <span id="questionCounter" class="text-sm font-bold text-purple-300 bg-purple-950 px-4 py-1.5 rounded-full border border-purple-500/30">السؤال 1 من 6</span>
+                    <div class="flex items-center gap-2">
+                        <span class="text-xl">⏱️</span>
+                        <span id="timerText" class="text-xl font-black text-amber-400">20</span>
+                    </div>
+                </div>
+
+                <div class="text-center mb-8">
+                    <h3 id="currentTurnIndicator" class="text-sm font-bold text-pink-400 mb-3 tracking-wider uppercase">دور: فريق الصقور</h3>
+                    <h2 id="questionText" class="text-xl md:text-3xl font-extrabold text-slate-100 leading-relaxed">جاري تحميل السؤال...</h2>
+                </div>
+
+                <!-- خيارات الإجابة -->
+                <div id="optionsContainer" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <!-- تتولد الخيارات برمجياً -->
+                </div>
+            </div>
+        </div>
+
+        <!-- شاشة النتائج النهائية وإعلان الفائز -->
+        <div id="resultScreen" class="w-full hidden glass-panel rounded-3xl p-8 shadow-2xl text-center max-w-2xl">
+            <div class="text-6xl mb-4">🏆🔥</div>
+            <h2 class="text-4xl font-black mb-2 text-purple-300 neon-glow">انتهت المسابقة!</h2>
+            <p id="winnerAnnouncement" class="text-2xl font-bold text-slate-200 mb-8">الفائز هو الفريق الفلاني بجدارة واستحقاق!</p>
+            
+            <div class="bg-slate-900/60 p-6 rounded-2xl border border-slate-700 mb-8 flex justify-around">
+                <div>
+                    <h4 id="finalTeam1Label" class="font-bold text-indigo-300">فريق الصقور</h4>
+                    <p id="finalTeam1Score" class="text-3xl font-black">0</p>
+                </div>
+                <div class="border-r border-slate-700"></div>
+                <div>
+                    <h4 id="finalTeam2Label" class="font-bold text-pink-300">فريق الأسود</h4>
+                    <p id="finalTeam2Score" class="text-3xl font-black">0</p>
+                </div>
+            </div>
+
+            <button onclick="resetGame()" class="w-full max-w-md bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-black py-4 px-8 rounded-2xl shadow-lg transition transform hover:scale-105 text-lg">
+                🔄 العب مرة أخرى وتحدً جديد
+            </button>
+        </div>
+
+    </main>
+
+    <!-- صندوق رسائل التنبيه التفاعلي الجميل (بدون استخدام alert الافتراضية) -->
+    <div id="customModal" class="fixed inset-0 bg-black/70 backdrop-blur-sm hidden flex items-center justify-center p-4 z-50">
+        <div class="glass-panel p-6 md:p-8 rounded-3xl max-w-md w-full text-center border border-purple-500/40 shadow-2xl">
+            <div id="modalIcon" class="text-5xl mb-3">🎉</div>
+            <h3 id="modalTitle" class="text-2xl font-black text-purple-300 mb-2">إجابة صحيحة!</h3>
+            <p id="modalMessage" class="text-slate-300 mb-6 text-sm md:text-base">لقد حصل الفريق على 10 نقاط كاملة.</p>
+            <button onclick="closeModal()" class="w-full bg-purple-600 hover:bg-purple-500 text-white font-bold py-3 rounded-xl transition">
+                متابعة التحدي
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // قواعد البيانات الخاصة بالأسئلة المتنوعة والممتعة للمسابقات
+        const questionBank = {
+            general: [
+                {
+                    q: "ما هو أكبر كوكب في مجموعة الشمسية من حيث الحجم؟",
+                    options: ["زحل", "المشتري", "الأرض", "المريخ"],
+                    correct: 1
+                },
+                {
+                    q: "في أي قارة تقع عاصمة العالم القديم 'مصر'؟",
+                    options: ["آسيا", "أفريقيا", "أوروبا", "أستراليا"],
+                    correct: 1
+                },
+                {
+                    q: "ما هو المعدن الوحيد السائل في درجة حرارة الغرفة؟",
+                    options: ["الذهب", "النحاس", "الزئبق", "الحديد"],
+                    correct: 2
+                },
+                {
+                    q: "كم عدد سور القرآن الكريم؟",
+                    options: ["112 سورة", "114 سورة", "120 سورة", "100 سورة"],
+                    correct: 1
+                },
+                {
+                    q: "ما هو الحيوان البري الأسرع سرعة في العالم؟",
+                    options: ["الفهد (الأسد الأمريكي)", "الفهد الصياد (الشيتا)", "الغزال", "الحصان"],
+                    correct: 1
+                },
+                {
+                    q: "من هو القائد المسلم الذي فتح قسطنطينية؟",
+                    options: ["صلاح الدين الأيوبي", "طارق بن زياد", "محمد الفاتح", "عقبة بن نافع"],
+                    correct: 2
+                }
+            ],
+            tech: [
+                {
+                    q: "ماذا تعني اختصار لغة البرمجة الشهيرة HTML؟",
+                    options: [
+                        "Hyper Text Markup Language",
+                        "High Transfer Modern Language",
+                        "Hyper Tool Multi Language",
+                        "Hyperlink Text Management Logic"
+                    ],
+                    correct: 0
+                },
+                {
+                    q: "من هو المؤسس الرئيسي لشركة مايكروسوفت (Microsoft)؟",
+                    options: ["ستيف جوبز", "بيل جيتس", "إيلون ماسك", "مارك زوكربيرغ"],
+                    correct: 1
+                },
+                {
+                    q: "ما هي وحدة القياس الأساسية لسعة تخزين البيانات الحاسوبية الكبرى؟",
+                    options: ["الميجابايت", "الجيجابايت", "التيرابايت", "الكيلوبايت"],
+                    correct: 2
+                },
+                {
+                    q: "أي من هذه لغات البرمجة تستخدم بكثافة هائلة في الذكاء الاصطناعي وتحليل البيانات؟",
+                    options: ["بايثون (Python)", "سي شارب (C#)", "اتش تي ام ال (HTML)", "سي اس اس (CSS)"],
+                    correct: 0
+                },
+                {
+                    q: "متى تم إطلاق شبكة الإنترنت للعموم (World Wide Web) تقريباً؟",
+                    options: ["عام 1975", "عام 1983", "عام 1991", "عام 2000"],
+                    correct: 2
+                },
+                {
+                    q: "ماذا يسمى نظام التشغيل المفتوح المصدر والمبني على نواة لينكس وتستخدمه ملايين الهواتف؟",
+                    options: ["iOS", "Windows Phone", "Android", "Symbian"],
+                    correct: 2
+                }
+            ],
+            riddles: [
+                {
+                    q: "شيء كلما أخذت منه كبر، وكلما وضعت فيه صغر.. فما هو؟",
+                    options: ["البحر", "الحفرة",, "الوقت", "الكتاب"],
+                    correct: 1
+                },
+                {
+                    q: "من هو الشخص الذي يرى عدوه وصدقه بعين واحدة، وله عينان؟",
+                    options: ["الأعور", "الاعمى", "الشخص الذي يرتدي نظارة", "النائم"],
+                    correct: 2
+                },
+                {
+                    q: "ما هو الشيء الذي يسير بلا رجلين ولا يدخل إلا باذنين؟",
+                    options: ["الصوت",, "السحاب", "الريح", "الظل"],
+                    correct: 0
+                },
+                {
+                    q: "له أسنان ولا يعض.. فما هو؟",
+                    options: ["المنشار", "المشط", "المفتاح", "الكلب"],
+                    correct: 1
+                },
+                {
+                    q: "ما هو الشيء الذي يكون أخضر في الأرض، وأسود في السوق، وأحمر في البيت؟",
+                    options: ["البطيخ",, "الشاي", "القهوة", "التفاح"],
+                    correct: 1
+                },
+                {
+                    q: "ابن أمك وأبيك، وليس بأخيك ولا أختك.. فمن يكون؟",
+                    options: ["خالك", "عمك", "أنت نفسك", "ابن عمك"],
+                    correct: 2
+                }
+            ]
+        };
+
+        // متغيرات حالة اللعبة
+        let currentQuestions = [];
+        let currentQuestionIndex = 0;
+        let team1Name = "فريق الصقور";
+        let team2Name = "فريق الأسود";
+        let team1Score = 0;
+        let team2Score = 0;
+        let activeTeam = 1; // 1 للفريق الأول، 2 للفريق الثاني
+        let timerInterval = null;
+        let timeLeft = 20;
+        let isAnswerLocked = false;
+
+        function startGame() {
+            team1Name = document.getElementById("team1NameInput").value.trim() || "فريق الصقور";
+            team2Name = document.getElementById("team2NameInput").value.trim() || "فريق الأسود";
+            
+            document.getElementById("displayTeam1Name").innerText = team1Name;
+            document.getElementById("displayTeam2Name").innerText = team2Name;
+
+            const category = document.getElementById("categorySelect").value;
+            // نسخ الأسئلة وخلطها قليلاً أو أخذها مباشرة
+            currentQuestions = [...questionBank[category]];
+            currentQuestionIndex = 0;
+            team1Score = 0;
+            team2Score = 0;
+            activeTeam = 1;
+
+            document.getElementById("setupScreen").classList.add("hidden");
+            document.getElementById("gameScreen").classList.remove("hidden");
+            document.getElementById("gameStatusBadge").innerText = "المسابقة جارية الآن ⚡";
+
+            loadQuestion();
+        }
+
+        function loadQuestion() {
+            if (currentQuestionIndex >= currentQuestions.length) {
+                endGame();
+                return;
+            }
+
+            isAnswerLocked = false;
+            timeLeft = 20;
+            document.getElementById("timerText").innerText = timeLeft;
+            
+            // تحديث واجهة الدور
+            const currentTeamName = activeTeam === 1 ? team1Name : team2Name;
+            const turnIndicator = document.getElementById("currentTurnIndicator");
+            turnIndicator.innerText = `دور: ${currentTeamName}`;
+            turnIndicator.className = `text-sm font-bold mb-3 tracking-wider uppercase ${activeTeam === 1 ? 'text-indigo-400' : 'text-pink-400'}`;
+
+            // تحديث بطاقات النتائج
+            document.getElementById("team1Score").innerText = team1Score;
+            document.getElementById("team2Score").innerText = team2Score;
+
+            if(activeTeam === 1) {
+                document.getElementById("team1Card").classList.add("ring-2", "ring-indigo-400");
+                document.getElementById("team2Card").classList.remove("ring-2", "ring-pink-400");
+            } else {
+                document.getElementById("team2Card").classList.add("ring-2", "ring-pink-400");
+                document.getElementById("team1Card").classList.remove("ring-2", "ring-indigo-400");
+            }
+
+            // عرض عداد الأسئلة
+            document.getElementById("questionCounter").innerText = `السؤال ${currentQuestionIndex + 1} من ${currentQuestions.length}`;
+
+            const qData = currentQuestions[currentQuestionIndex];
+            document.getElementById("questionText").innerText = qData.q;
+
+            const optionsContainer = document.getElementById("optionsContainer");
+            optionsContainer.innerHTML = "";
+
+            qData.options.forEach((opt, index) => {
+                const btn = document.createElement("button");
+                btn.className = "p-4 bg-slate-900/80 hover:bg-slate-800 border border-slate-700 rounded-2xl text-right font-semibold text-slate-200 transition transform hover:-translate-y-1 shadow-md flex items-center justify-between";
+                btn.innerHTML = `<span>${opt}</span> <span class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-xs text-slate-400">${index + 1}</span>`;
+                btn.onclick = () => selectAnswer(index, qData.correct);
+                optionsContainer.appendChild(btn);
+            });
+
+            startTimer();
+        }
+
+        function startTimer() {
+            clearInterval(timerInterval);
+            timerInterval = setInterval(() => {
+                timeLeft--;
+                document.getElementById("timerText").innerText = timeLeft;
+                if (timeLeft <= 0) {
+                    clearInterval(timerInterval);
+                    handleTimeout();
+                }
+            }, 1000);
+        }
+
+        function handleTimeout() {
+            if (isAnswerLocked) return;
+            isAnswerLocked = true;
+            showCustomModal("⏰ انتهى الوقت!", `عذراً، نفد وقت الإجابة يا ${activeTeam === 1 ? team1Name : team2Name}.`, "⌛", () => {
+                nextTurnOrQuestion();
+            });
+        }
+
+        function selectAnswer(selectedIndex, correctIndex) {
+            if (isAnswerLocked) return;
+            isAnswerLocked = true;
+            clearInterval(timerInterval);
+
+            const isCorrect = selectedIndex === correctIndex;
+            const currentTeamName = activeTeam === 1 ? team1Name : team2Name;
+
+            if (isCorrect) {
+                if (activeTeam === 1) {
+                    team1Score += 10;
+                } else {
+                    team2Score += 10;
+                }
+                showCustomModal("🎉 إجابة صحيحة!", `أبدع ${currentTeamName} وحصل على 10 نقاط كاملة!`, "🌟", () => {
+                    nextTurnOrQuestion();
+                });
+            } else {
+                showCustomModal("❌ إجابة خاطئة!", `للأسف يا ${currentTeamName}، الإجابة غير صحيحة.`, "💡", () => {
+                    nextTurnOrQuestion();
+                });
+            }
+        }
+
+        let modalCallback = null;
+        function showCustomModal(title, message, icon, callback) {
+            document.getElementById("modalTitle").innerText = title;
+            document.getElementById("modalMessage").innerText = message;
+            document.getElementById("modalIcon").innerText = icon;
+            document.getElementById("customModal").classList.remove("hidden");
+            modalCallback = callback;
+        }
+
+        function closeModal() {
+            document.getElementById("customModal").classList.add("hidden");
+            if (modalCallback) {
+                modalCallback();
+                modalCallback = null;
+            }
+        }
+
+        function nextTurnOrQuestion() {
+            // تبديل الدور بين الفريقين في السؤال القادم، أو الانتقال لسؤال جديد
+            activeTeam = activeTeam === 1 ? 2 : 1;
+            // إذا انتهى دور الفريقين على نفس السؤال أو ننتقل للسؤال التالي بعد دورين
+            // لتنظيم أفضل: كل سؤال ينتقل الفريقان للتبادل، أو كل سؤال لفريق
+            currentQuestionIndex++;
+            loadQuestion();
+        }
+
+        function endGame() {
+            document.getElementById("gameScreen").classList.add("hidden");
+            document.getElementById("resultScreen").classList.remove("hidden");
+            document.getElementById("gameStatusBadge").innerText = "انتهت المسابقة 🏁";
+
+            document.getElementById("finalTeam1Label").innerText = team1Name;
+            document.getElementById("finalTeam2Label").innerText = team2Name;
+            document.getElementById("finalTeam1Score").innerText = team1Score;
+            document.getElementById("finalTeam2Score").innerText = team2Score;
+
+            let announcement = "";
+            if (team1Score > team2Score) {
+                announcement = `الفريق الفائز هو "${team1Name}" بـ ${team1Score} نقطة! مبروك النصر! 🏆`;
+            } else if (team2Score > team1Score) {
+                announcement = `الفريق الفائز هو "${team2Name}" بـ ${team2Score} نقطة! مبروك النصر! 🏆`;
+            } else {
+                announcement = `تعادل رائع ومثالي بين الفريقين بـ ${team1Score} نقطة لكل فريق! أداء مشرف! 🤝`;
+            }
+            document.getElementById("winnerAnnouncement").innerText = announcement;
+        }
+
+        function resetGame() {
+            document.getElementById("resultScreen").classList.add("hidden");
+            document.getElementById("setupScreen").classList.remove("hidden");
+            document.getElementById("gameStatusBadge").innerText = "جاهز للبدء";
+        }
+    </script>
+
+</body>
+</html>
